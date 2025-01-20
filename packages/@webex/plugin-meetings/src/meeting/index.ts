@@ -160,6 +160,7 @@ import PermissionError from '../common/errors/permission';
 import {LocusMediaRequest} from './locusMediaRequest';
 import {ConnectionStateHandler, ConnectionStateEvent} from './connectionStateHandler';
 import JoinWebinarError from '../common/errors/join-webinar-error';
+import Member from '../member';
 
 // default callback so we don't call an undefined function, but in practice it should never be used
 const DEFAULT_ICE_PHASE_CALLBACK = () => 'JOIN_MEETING_FINAL';
@@ -6472,6 +6473,14 @@ export default class Meeting extends StatelessWebexPlugin {
         this.webex.meetings.geoHintInfo?.clientAddress ||
         options.data.intervalMetadata.peerReflexiveIP ||
         MQA_STATS.DEFAULT_IP;
+
+      const {members} = this.getMembers().membersCollection;
+
+      // Count members that are in the meeting
+      options.data.intervalMetadata.meetingUserCount = Object.values(members).filter(
+        (member: Member) => member.isInMeeting
+      ).length;
+
       // @ts-ignore
       this.webex.internal.newMetrics.submitMQE({
         name: 'client.mediaquality.event',
