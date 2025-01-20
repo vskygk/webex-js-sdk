@@ -3742,6 +3742,93 @@ describe('plugin-meetings', () => {
         });
       });
 
+      describe(`#beRightBack`, () => {
+        const fakeMultistreamRoapMediaConnection = {
+          createSendSlot: sinon.stub().returns({
+            setSourceStateOverride: sinon.stub().resolves(),
+            clearSourceStateOverride: sinon.stub().resolves(),
+          }),
+        };
+
+        beforeEach(() => {
+          meeting.meetingRequest.setBrb = sinon.stub().resolves({body: 'test'});
+          meeting.mediaProperties.webrtcMediaConnection = {createSendSlot: sinon.stub()};
+          meeting.sendSlotManager.createSlot(
+            fakeMultistreamRoapMediaConnection,
+            MediaType.VideoMain
+          );
+
+          meeting.locusUrl = 'locus url';
+          meeting.deviceUrl = 'device url';
+          meeting.selfId = 'self id';
+        });
+
+        afterEach(() => {
+          sinon.restore();
+        });
+
+        it('should have #beRightBack', () => {
+          assert.exists(meeting.beRightBack);
+        });
+
+        describe('when in a multistream meeting', () => {
+
+          beforeEach(() => {
+            meeting.isMultistream = true;
+          });
+
+          it('should enable #beRightBack and return a promise', async () => {
+            const brbResult = meeting.beRightBack(true);
+
+            await brbResult;
+            assert.exists(brbResult.then);
+            assert.calledOnce(meeting.meetingRequest.setBrb);
+          })
+
+          it('should disable #beRightBack and return a promise', async () => {
+            const brbResult = meeting.beRightBack(false);
+
+            await brbResult;
+            assert.exists(brbResult.then);
+            assert.calledOnce(meeting.meetingRequest.setBrb);
+          })
+
+          it('should throw an error and reject the promise if setBrb fails', async () => {
+            const error = new Error('setBrb failed');
+            meeting.meetingRequest.setBrb.rejects(error);
+
+            try {
+              await meeting.beRightBack(true);
+            } catch (err) {
+              assert.instanceOf(err, Error);
+              assert.equal(err.message, 'setBrb failed');
+              assert.isRejected((Promise.reject()));
+            }
+          })
+        });
+
+        describe('when in a transcoded meeting', () => {
+
+          beforeEach(() => {
+            meeting.isMultistream = false;
+          });
+
+          it('should ignore enabling #beRightBack', async () => {
+            meeting.beRightBack(true);
+
+            assert.isRejected((Promise.reject()));
+            assert.notCalled(meeting.meetingRequest.setBrb);
+          })
+
+          it('should ignore disabling #beRightBack', async () => {
+            meeting.beRightBack(false);
+
+            assert.isRejected((Promise.reject()));
+            assert.notCalled(meeting.meetingRequest.setBrb);
+          })
+        });
+      });
+
       /* This set of tests are like semi-integration tests, they use real MuteState, Media, LocusMediaRequest and Roap classes.
          They mock the @webex/internal-media-core and sending of /media http requests to Locus.
          Their main purpose is to test that we send the right http requests to Locus and make right calls
@@ -8719,6 +8806,7 @@ describe('plugin-meetings', () => {
           });
         });
       });
+
       describe('#setUpLocusInfoSelfListener', () => {
         it('listens to the self unadmitted guest event', (done) => {
           meeting.startKeepAlive = sinon.stub();
@@ -8812,6 +8900,26 @@ describe('plugin-meetings', () => {
             {payload}
           );
         });
+
+        it('listens to the brb state changed event', () => {
+          const assertBrb = (enabled) => {
+            meeting.locusInfo.emit(
+              { function: 'test', file: 'test' },
+              LOCUSINFO.EVENTS.SELF_MEETING_BRB_CHANGED,
+              { brb: { enabled } },
+            )
+            assert.calledWithExactly(
+              TriggerProxy.trigger,
+              meeting,
+              {file: 'meeting/index', function: 'setUpLocusInfoSelfListener'},
+              EVENT_TRIGGERS.MEETING_SELF_BRB_UPDATE,
+              { payload: { brb: { enabled } } },
+            );
+          }
+
+          assertBrb(true);
+          assertBrb(false);
+        })
 
         it('listens to the interpretation changed event', () => {
           meeting.simultaneousInterpretation.updateSelfInterpretation = sinon.stub();
