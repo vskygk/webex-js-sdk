@@ -1238,6 +1238,7 @@ describe('plugin-meetings', () => {
           webex.internal.voicea.off = sinon.stub();
           webex.internal.voicea.listenToEvents = sinon.stub();
           webex.internal.voicea.turnOnCaptions = sinon.stub();
+          webex.internal.voicea.deregisterEvents = sinon.stub();
         });
 
         it('should stop listening to voicea events and also trigger a stop event', () => {
@@ -1556,6 +1557,55 @@ describe('plugin-meetings', () => {
           };
           meeting.processRelayEvent(fakeRelayEvent);
           assert.calledWith(
+            TriggerProxy.trigger,
+            sinon.match.instanceOf(Meeting),
+            {
+              file: 'meeting/index',
+              function: 'join',
+            },
+            EVENT_TRIGGERS.MEETING_RECEIVE_REACTIONS,
+            fakeProcessedReaction
+          );
+        });
+
+        it('should fail quietly if participantId does not exist in membersCollection', () => {
+          LoggerProxy.logger.warn = sinon.stub();
+          meeting.isReactionsSupported = sinon.stub().returns(true);
+          meeting.config.receiveReactions = true;
+          const fakeSendersName = 'Fake reactors name';
+          const fakeReactionPayload = {
+            type: 'fake_type',
+            codepoints: 'fake_codepoints',
+            shortcodes: 'fake_shortcodes',
+            tone: {
+              type: 'fake_tone_type',
+              codepoints: 'fake_tone_codepoints',
+              shortcodes: 'fake_tone_shortcodes',
+            },
+          };
+          const fakeSenderPayload = {
+            participantId: 'fake_participant_id',
+          };
+          const fakeProcessedReaction = {
+            reaction: fakeReactionPayload,
+            sender: {
+              id: fakeSenderPayload.participantId,
+              name: fakeSendersName,
+            },
+          };
+          const fakeRelayEvent = {
+            data: {
+              relayType: REACTION_RELAY_TYPES.REACTION,
+              reaction: fakeReactionPayload,
+              sender: fakeSenderPayload,
+            },
+          };
+          meeting.processRelayEvent(fakeRelayEvent);
+          assert.calledWith(
+            LoggerProxy.logger.warn,
+            `Meeting:index#processRelayEvent --> Skipping handling of react for ${meeting.id}. participantId fake_participant_id does not exist in membersCollection.`
+          );
+          assert.neverCalledWith(
             TriggerProxy.trigger,
             sinon.match.instanceOf(Meeting),
             {
@@ -5055,6 +5105,11 @@ describe('plugin-meetings', () => {
           meeting.logger.error = sinon.stub().returns(true);
           meeting.updateLLMConnection = sinon.stub().returns(Promise.resolve());
           webex.internal.voicea.off = sinon.stub().returns(true);
+          meeting.stopTranscription = sinon.stub();
+          meeting.transcription = {};
+
+          meeting.annotation.deregisterEvents = sinon.stub();
+          webex.internal.llm.off = sinon.stub();
 
           // A meeting needs to be joined to leave
           meeting.meetingState = 'ACTIVE';
@@ -5075,6 +5130,9 @@ describe('plugin-meetings', () => {
           assert.calledOnce(meeting.closePeerConnections);
           assert.calledOnce(meeting.unsetRemoteStreams);
           assert.calledOnce(meeting.unsetPeerConnections);
+          assert.calledOnce(meeting.stopTranscription);
+          assert.calledOnce(meeting.annotation.deregisterEvents);
+          assert.calledWith(webex.internal.llm.off, 'event:relay.event', meeting.processRelayEvent);
         });
 
         it('should reset call diagnostic latencies correctly', async () => {
@@ -6957,6 +7015,9 @@ describe('plugin-meetings', () => {
           meeting.transcription = {};
           meeting.stopTranscription = sinon.stub();
 
+          meeting.annotation.deregisterEvents = sinon.stub();
+          webex.internal.llm.off = sinon.stub();
+
           // A meeting needs to be joined to end
           meeting.meetingState = 'ACTIVE';
           meeting.state = 'JOINED';
@@ -6977,6 +7038,9 @@ describe('plugin-meetings', () => {
           assert.calledOnce(meeting?.unsetRemoteStreams);
           assert.calledOnce(meeting?.unsetPeerConnections);
           assert.calledOnce(meeting?.stopTranscription);
+
+          assert.called(meeting.annotation.deregisterEvents);
+          assert.calledWith(webex.internal.llm.off, 'event:relay.event', meeting.processRelayEvent);
         });
       });
 
