@@ -8575,6 +8575,12 @@ export default class Meeting extends StatelessWebexPlugin {
       correlationId: this.correlationId,
       muted,
       encoderImplementation: this.statsAnalyzer?.shareVideoEncoderImplementation,
+      // TypeScript 4 does not recognize the `displaySurface` property. Instead of upgrading the
+      // SDK to TypeScript 5, which may affect other packages, use bracket notation for now, since
+      // all we're doing here is adding metrics.
+      // eslint-disable-next-line dot-notation
+      displaySurface: this.mediaProperties?.shareVideoStream?.getSettings()['displaySurface'],
+      isMultistream: this.isMultistream,
     });
   };
 
