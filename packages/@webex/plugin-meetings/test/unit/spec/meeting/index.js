@@ -10841,6 +10841,11 @@ describe('plugin-meetings', () => {
               requiredDisplayHints: [],
               requiredPolicies: [SELF_POLICY.SUPPORT_POLLING_AND_QA],
             },
+            {
+              actionName: 'canShareWhiteBoard',
+              requiredDisplayHints: [DISPLAY_HINTS.SHARE_WHITEBOARD],
+              requiredPolicies: [SELF_POLICY.SUPPORT_WHITEBOARD],
+            },
           ],
           ({
             actionName,
@@ -11249,7 +11254,7 @@ describe('plugin-meetings', () => {
           assert.calledWith(canSendReactionsSpy, null, userDisplayHints);
           assert.calledWith(canUserRenameSelfAndObservedSpy, userDisplayHints);
           assert.calledWith(canUserRenameOthersSpy, userDisplayHints);
-          assert.calledWith(canShareWhiteBoardSpy, userDisplayHints);
+          assert.calledWith(canShareWhiteBoardSpy, userDisplayHints, selfUserPolicies);
 
           assert.calledWith(ControlsOptionsUtil.hasHints, {
             requiredHints: [DISPLAY_HINTS.MUTE_ALL],
