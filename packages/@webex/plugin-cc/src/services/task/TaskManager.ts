@@ -237,10 +237,30 @@ export default class TaskManager extends EventEmitter {
   }
 
   private updateTaskData(task: ITask, taskData: TaskData): ITask {
-    const currentTask = task.updateTaskData(taskData);
-    this.taskCollection[taskData.interactionId] = currentTask;
+    if (!task) {
+      return undefined;
+    }
 
-    return currentTask;
+    if (!taskData?.interactionId) {
+      LoggerProxy.warn('Received task update with missing interactionId', {
+        module: TASK_MANAGER_FILE,
+        method: 'updateTaskData',
+      });
+    }
+
+    try {
+      const currentTask = task.updateTaskData(taskData);
+      this.taskCollection[taskData.interactionId] = currentTask;
+
+      return currentTask;
+    } catch (error) {
+      LoggerProxy.error(`Failed to update task ${taskData.interactionId}`, {
+        module: TASK_MANAGER_FILE,
+        method: 'updateTaskData',
+      });
+
+      return task;
+    }
   }
 
   private removeTaskFromCollection(task: ITask) {
