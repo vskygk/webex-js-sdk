@@ -54,6 +54,7 @@
     "@webex/internal-plugin-device": "workspace:^",
     "@webex/internal-plugin-presence": "workspace:^",
     "@webex/internal-plugin-support": "workspace:^",
+    "@webex/internal-plugin-task": "workspace:^",
     "@webex/plugin-attachment-actions": "workspace:^",
     "@webex/plugin-authorization": "workspace:^",
     "@webex/plugin-device-manager": "workspace:^",
