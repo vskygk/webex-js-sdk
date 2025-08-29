@@ -1,7 +1,6 @@
 /*!
  * Copyright (c) 2015-2020 Cisco Systems, Inc. See LICENSE file.
  */
-import {isArray} from 'lodash';
 import {WebexPlugin} from '@webex/webex-core';
 
 import {RAINDROP_REGISTERED, RAINDROP_UNREGISTERED} from './constants';
@@ -21,11 +20,6 @@ const Task = WebexPlugin.extend({
   registered: false,
 
   /**
-   * Cache KMS encryptionKeyUrl
-   * */
-  encryptionKeyUrl: null,
-
-  /**
    * WebexPlugin initialize method. This triggers once Webex has completed its
    * initialization workflow.
    *
@@ -36,32 +30,6 @@ const Task = WebexPlugin.extend({
   initialize() {
     // Used to perform actions after webex is fully qualified and ready for
     // operation.
-    this.listenToOnce(this.webex, 'ready', () => {
-      // Pre-fetch a KMS encryption key url to improve performance
-      this.webex.internal.encryption.kms
-        .createUnboundKeys({count: 1})
-        .then((keys) => {
-          const key = isArray(keys) && keys.length > 0 ? keys[0] : keys;
-          this.encryptionKeyUrl = key ? key.uri : null;
-          this.logger.info('Task->bind a KMS encryption key url');
-
-          // only call getKey if encryptionKeyUrl is valid
-          if (this.encryptionKeyUrl) {
-            return this.webex.internal.encryption.getKey(this.encryptionKeyUrl, {onBehalfOf: null});
-          }
-
-          return null;
-        })
-        .then((retrievedKey) => {
-          if (retrievedKey) {
-            this.encryptionKeyUrl = retrievedKey.uri || null;
-            this.logger.info('Task->retrieve the KMS encryption key url and cache it');
-          }
-        })
-        .catch((err) => {
-          this.logger.error('Task->failed to fetch or retrieve encryption key', err);
-        });
-    });
   },
 
   /**
