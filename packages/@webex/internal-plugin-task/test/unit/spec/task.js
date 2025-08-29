@@ -143,7 +143,6 @@ describe('internal-plugin-task', () => {
       describe("#createTask()", () => {
         it("should create an task", async () => {
           const data = {
-            encryptionKeyUrl: "kms://kms-us-int.wbx2.com/keys/d1c14fc5-be10-4389-ae83-9521f92fbfd3",
             title: "My Task 1",
           };
 
@@ -170,7 +169,6 @@ describe('internal-plugin-task', () => {
         it("should update a task", async () => {
           const id = "abcdabcd-abcd-abcd-abcd-00000000";
           const data = {
-            encryptionKeyUrl: "kms://kms-us-int.wbx2.com/keys/d1c14fc5-be10-4389-ae83-9521f92fbfd3",
             title: "My Task 1",
           };
 

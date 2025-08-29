@@ -6,11 +6,15 @@ describe('internal-plugin-task', () => {
     let ctx;
     beforeEach(() => {
       ctx = {
-        encryptionKeyUrl: 'http://example.com/encryption-key',
         webex: {
           internal: {
             encryption: {
               encryptText: sinon.stub(),
+              kms: {
+                createUnboundKeys: sinon.stub().resolves([{
+                  uri: 'kmsKeyUri',
+                }]),
+              }
             },
           },
         },
@@ -25,7 +29,6 @@ describe('internal-plugin-task', () => {
       const taskRequest = {
         "title": "plain text title",
         "note": "plain text note",
-        "encryptionKeyUrl": "/keys/e5d3f747-6adf-432d-999c-6578e33953e3",
       };
       const expectedCiphertext = 'some encrpty data';
       ctx.webex.internal.encryption.encryptText.callsFake((key, ciphertext) =>

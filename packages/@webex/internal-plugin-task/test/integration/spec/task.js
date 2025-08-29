@@ -30,7 +30,6 @@ describe.skip('plugin-task', function () {
         .createTask({
           title: 'Task Title',
           note: 'Task Note',
-          encryptionKeyUrl: '/keys/e5d3f747-6adf-432d-999c-6578e33953e3',
         })
         .then((t) => {
           createdTask = t.body;

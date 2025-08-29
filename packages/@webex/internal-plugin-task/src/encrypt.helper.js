@@ -12,15 +12,6 @@ const _encryptTextProp = (ctx, name, key, object) => {
     });
 };
 
-const _encryptTaskRequestPayload = (data, ctx) => {
-  Object.assign(data, {encryptionKeyUrl: ctx.encryptionKeyUrl});
-
-  return Promise.all([
-    _encryptTextProp(ctx, 'title', data.encryptionKeyUrl, data),
-    _encryptTextProp(ctx, 'note', data.encryptionKeyUrl, data),
-  ]);
-};
-
 const EncryptHelper = {
   /**
    * Encrypt create / update task event request payload
@@ -29,15 +20,14 @@ const EncryptHelper = {
    * @returns {Promise} Resolves with encrypted request payload
    * */
   encryptTaskRequest: (ctx, data) => {
-    if (ctx.encryptionKeyUrl) {
-      return _encryptTaskRequestPayload(data, ctx);
-    }
-
     return ctx.webex.internal.encryption.kms.createUnboundKeys({count: 1}).then((keys) => {
       const key = isArray(keys) ? keys[0] : keys;
-      ctx.encryptionKeyUrl = key.uri;
+      const encryptionKeyUrl = key.uri;
 
-      return _encryptTaskRequestPayload(data, ctx);
+      return Promise.all([
+        _encryptTextProp(ctx, 'title', encryptionKeyUrl, data),
+        _encryptTextProp(ctx, 'note', encryptionKeyUrl, data),
+      ]);
     });
   },
 };
