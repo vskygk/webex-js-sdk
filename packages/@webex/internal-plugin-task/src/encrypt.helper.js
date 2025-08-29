@@ -23,6 +23,7 @@ const EncryptHelper = {
     return ctx.webex.internal.encryption.kms.createUnboundKeys({count: 1}).then((keys) => {
       const key = isArray(keys) ? keys[0] : keys;
       const encryptionKeyUrl = key.uri;
+      Object.assign(data, {encryptionKeyUrl});
 
       return Promise.all([
         _encryptTextProp(ctx, 'title', encryptionKeyUrl, data),
