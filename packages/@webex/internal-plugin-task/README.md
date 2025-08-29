@@ -26,7 +26,42 @@ import '@webex/internal-plugin-task';
 import WebexCore from '@webex/webex-core';
 
 const webex = new WebexCore();
-webex.internal.task.WHATEVER;
+
+webex.internal.task.listMyTasks({
+  orderBy: 'createdAt:desc'
+});
+
+webex.internal.task.getTask(id).then((task) => {
+  // do something with the task
+});
+
+webex.internal.task.createTask({
+  title: 'My new task',
+  dueDate: '2024-12-31T23:59:59.000Z'
+}).then((task) => {
+  // do something with the task
+});
+
+webex.internal.task.updateTask(id, {
+  title: 'My new task',
+  note: "This is a note",
+  dueDate: '2024-12-31T23:59:59.000Z'
+}).then((task) => {
+  // do something with the task
+});
+
+webex.internal.task.deleteTask(id).then((task) => {
+  // do something with the task
+});
+
+webex.internal.task.acceptTask(id).then((task) => {
+  // do something with the task
+});
+
+webex.internal.task.rejectTask(id).then((task) => {
+  // do something with the task
+});
+
 ```
 
 ## Maintainers

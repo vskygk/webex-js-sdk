@@ -38,17 +38,29 @@ const Task = WebexPlugin.extend({
     // operation.
     this.listenToOnce(this.webex, 'ready', () => {
       // Pre-fetch a KMS encryption key url to improve performance
-      this.webex.internal.encryption.kms.createUnboundKeys({count: 1}).then((keys) => {
-        const key = isArray(keys) ? keys[0] : keys;
-        this.encryptionKeyUrl = key ? key.uri : null;
-        this.logger.info('Task->bind a KMS encryption key url');
-        this.webex.internal.encryption
-          .getKey(this.encryptionKeyUrl, {onBehalfOf: null})
-          .then((retrievedKey) => {
-            this.encryptionKeyUrl = retrievedKey ? retrievedKey.uri : null;
+      this.webex.internal.encryption.kms
+        .createUnboundKeys({count: 1})
+        .then((keys) => {
+          const key = isArray(keys) && keys.length > 0 ? keys[0] : keys;
+          this.encryptionKeyUrl = key ? key.uri : null;
+          this.logger.info('Task->bind a KMS encryption key url');
+
+          // only call getKey if encryptionKeyUrl is valid
+          if (this.encryptionKeyUrl) {
+            return this.webex.internal.encryption.getKey(this.encryptionKeyUrl, {onBehalfOf: null});
+          }
+
+          return null;
+        })
+        .then((retrievedKey) => {
+          if (retrievedKey) {
+            this.encryptionKeyUrl = retrievedKey.uri || null;
             this.logger.info('Task->retrieve the KMS encryption key url and cache it');
-          });
-      });
+          }
+        })
+        .catch((err) => {
+          this.logger.error('Task->failed to fetch or retrieve encryption key', err);
+        });
     });
   },
 
@@ -67,7 +79,7 @@ const Task = WebexPlugin.extend({
     }
 
     if (this.registered) {
-      this.logger.info('Task->register#INFO, Calendar plugin already registered');
+      this.logger.info('Task->register#INFO, task plugin already registered');
 
       return Promise.resolve();
     }
@@ -88,8 +100,8 @@ const Task = WebexPlugin.extend({
   },
 
   /**
-   * Explicitly tears down the calendar plugin by de-registering
-   * the device, disconnecting from mercury, and stops listening to calendar events
+   * Explicitly tears down the task plugin by de-registering
+   * the device, disconnecting from mercury, and stops listening to task events
    *
    * @returns {Promise}
    * @public
@@ -97,7 +109,7 @@ const Task = WebexPlugin.extend({
    */
   unregister() {
     if (!this.registered) {
-      this.logger.info('Task->unregister#INFO, Calendar plugin already unregistered');
+      this.logger.info('Task->unregister#INFO, task plugin already unregistered');
 
       return Promise.resolve();
     }
@@ -114,14 +126,14 @@ const Task = WebexPlugin.extend({
   },
 
   /**
-   * registers for calendar events through mercury
+   * registers for task events through mercury
    * @returns {undefined}
    * @private
    */
   listenForEvents() {},
 
   /**
-   * unregisteres all the calendar events from mercury
+   * unregisteres all the task events from mercury
    * @returns {undefined}
    * @private
    */
