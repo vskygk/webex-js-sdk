@@ -152,6 +152,8 @@ const Task = WebexPlugin.extend({
         service: 'raindrop',
         body: data,
         resource: 'tasks',
+      }).then((response) => {
+        return DecryptHelper.decryptTaskResponse(this, response.body).then(() => response);
       })
     );
   },
@@ -169,6 +171,8 @@ const Task = WebexPlugin.extend({
         service: 'raindrop',
         body: data,
         resource: `tasks/${id}`,
+      }).then((response) => {
+        return DecryptHelper.decryptTaskResponse(this, response.body).then(() => response);
       })
     );
   },
@@ -196,6 +200,8 @@ const Task = WebexPlugin.extend({
       method: 'POST',
       service: 'raindrop',
       resource: `tasks/${id}/accept`,
+    }).then((response) => {
+      return DecryptHelper.decryptTaskResponse(this, response.body).then(() => response);
     });
   },
 
@@ -209,6 +215,8 @@ const Task = WebexPlugin.extend({
       method: 'POST',
       service: 'raindrop',
       resource: `tasks/${id}/reject`,
+    }).then((response) => {
+      return DecryptHelper.decryptTaskResponse(this, response.body).then(() => response);
     });
   },
 });
