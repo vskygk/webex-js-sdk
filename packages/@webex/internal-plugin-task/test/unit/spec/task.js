@@ -8,8 +8,8 @@ import MockWebex from '@webex/test-helper-mock-webex';
 import sinon from 'sinon';
 
 import {
-  RAINDROP_REGISTERED,
-  RAINDROP_UNREGISTERED,
+  TASK_REGISTERED,
+  TASK_UNREGISTERED,
 } from '../../../src/constants';
 
 describe('internal-plugin-task', () => {
@@ -59,7 +59,7 @@ describe('internal-plugin-task', () => {
         it('should trigger `task:register` event', async () => {
           const spy = sinon.spy();
 
-          webex.internal.task.on(RAINDROP_REGISTERED, spy);
+          webex.internal.task.on(TASK_REGISTERED, spy);
           await webex.internal.task.register();
           assert.calledOnce(spy);
         });
@@ -73,15 +73,13 @@ describe('internal-plugin-task', () => {
           await webex.internal.task.register();
           await webex.internal.task.unregister();
           assert.callCount(webex.internal.mercury.off, 0);
-          assert.calledOnce(webex.internal.mercury.disconnect);
-          assert.calledOnce(webex.internal.device.unregister);
         });
         it('should trigger `task:unregister` event', async () => {
           const spy = sinon.spy();
 
           // reset the state back
           await webex.internal.task.register();
-          webex.internal.task.on(RAINDROP_UNREGISTERED, spy);
+          webex.internal.task.on(TASK_UNREGISTERED, spy);
           await webex.internal.task.unregister();
           assert.calledOnce(spy);
         });

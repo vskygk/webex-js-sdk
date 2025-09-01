@@ -3,7 +3,7 @@
  */
 import {WebexPlugin} from '@webex/webex-core';
 
-import {RAINDROP_REGISTERED, RAINDROP_UNREGISTERED} from './constants';
+import {TASK_REGISTERED, TASK_UNREGISTERED} from './constants';
 
 import EncryptHelper from './encrypt.helper';
 import DecryptHelper from './decrypt.helper';
@@ -57,7 +57,7 @@ const Task = WebexPlugin.extend({
       .then(() => this.webex.internal.mercury.connect())
       .then(() => {
         this.listenForEvents();
-        this.trigger(RAINDROP_REGISTERED);
+        this.trigger(TASK_REGISTERED);
         this.registered = true;
       })
       .catch((error) => {
@@ -68,8 +68,7 @@ const Task = WebexPlugin.extend({
   },
 
   /**
-   * Explicitly tears down the task plugin by de-registering
-   * the device, disconnecting from mercury, and stops listening to task events
+   * Explicitly tears down the task plugin by stops listening to task events
    *
    * @returns {Promise}
    * @public
@@ -83,14 +82,10 @@ const Task = WebexPlugin.extend({
     }
 
     this.stopListeningForEvents();
+    this.trigger(TASK_UNREGISTERED);
+    this.registered = false;
 
-    return this.webex.internal.mercury
-      .disconnect()
-      .then(() => this.webex.internal.device.unregister())
-      .then(() => {
-        this.trigger(RAINDROP_UNREGISTERED);
-        this.registered = false;
-      });
+    return Promise.resolve();
   },
 
   /**

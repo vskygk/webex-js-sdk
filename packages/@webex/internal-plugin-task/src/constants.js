@@ -1,2 +1,2 @@
-export const RAINDROP_REGISTERED = 'raindrop:registered';
-export const RAINDROP_UNREGISTERED = 'raindrop:unregistered';
+export const TASK_REGISTERED = 'task:registered';
+export const TASK_UNREGISTERED = 'task:unregistered';
