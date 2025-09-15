@@ -20,6 +20,13 @@ const EncryptHelper = {
    * @returns {Promise} Resolves with encrypted request payload
    * */
   encryptTaskRequest: (ctx, data) => {
+    if (data.encryptionKeyUrl) {
+      return Promise.all([
+        _encryptTextProp(ctx, 'title', data.encryptionKeyUrl, data),
+        _encryptTextProp(ctx, 'note', data.encryptionKeyUrl, data),
+      ]);
+    }
+
     return ctx.webex.internal.encryption.kms.createUnboundKeys({count: 1}).then((keys) => {
       const key = isArray(keys) ? keys[0] : keys;
       const encryptionKeyUrl = key.uri;
