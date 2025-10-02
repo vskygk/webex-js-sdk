@@ -2040,6 +2040,18 @@ describe('plugin-meetings', () => {
       });
     });
 
+    describe('#handleLocusAPIResponse', () => {
+      it('calls handleLocusDelta', () => {
+        const fakeLocus = {eventType: LOCUSEVENT.DIFFERENCE};
+
+        sinon.stub(locusInfo, 'handleLocusDelta');
+
+        locusInfo.handleLocusAPIResponse(mockMeeting, {locus: fakeLocus});
+
+        assert.calledWith(locusInfo.handleLocusDelta, fakeLocus, mockMeeting);
+      });
+    });
+
     describe('#LocusDeltaEvents', () => {
       const fakeMeeting = 'fakeMeeting';
       let sandbox = null;
