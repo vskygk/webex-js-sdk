@@ -9,7 +9,7 @@ import WebexCore from '@webex/webex-core';
 import '@webex/internal-plugin-conversation';
 import testUsers from '@webex/test-helper-test-users';
 
-describe.skip('plugin-task', function () {
+describe('plugin-task', function () {
   this.timeout(60000);
   describe('Task', () => {
     let createdTask, spock;
