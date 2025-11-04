@@ -1,3 +1,11 @@
+/**
+ * Decrypt text property - Note: this is backup solution for decryption, the better solution is to use interceptors and needs migration later
+ * @param {object} [ctx] context
+ * @param {string} [name] property name
+ * @param {string|object} [key] encryption key or key uri
+ * @param {object} [object] object which contains the property
+ * @returns {Promise} Resolves when decryption is complete
+ */
 const _decryptTextProp = (ctx, name, key, object) => {
   if (!object[name]) {
     return Promise.resolve();

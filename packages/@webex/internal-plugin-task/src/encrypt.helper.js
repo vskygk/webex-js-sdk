@@ -1,5 +1,12 @@
 import {isArray} from 'lodash';
-
+/**
+ * Encrypt text property of an object - Note: this is backup solution for encryption, the better solution is to use interceptors and needs migration later
+ * @param {object} [ctx] context
+ * @param {string} [name] property name
+ * @param {string|object} [key] encryption key or key uri
+ * @param {object} [object] object which contains the property
+ * @returns {Promise} Resolves when encryption is complete
+ */
 const _encryptTextProp = (ctx, name, key, object) => {
   if (!object[name]) {
     return Promise.resolve();
