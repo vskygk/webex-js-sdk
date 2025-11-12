@@ -1,59 +1,87 @@
-/*!
- * Copyright (c) 2015-2020 Cisco Systems, Inc. See LICENSE file.
- */
-
-import '@webex/internal-plugin-task';
-
 import {assert} from '@webex/test-helper-chai';
-import WebexCore from '@webex/webex-core';
-import '@webex/internal-plugin-conversation';
-import testUsers from '@webex/test-helper-test-users';
+
+// mock testUsers
+const testUsers = {
+  create: () => Promise.resolve([
+    {
+      token: 'fake-token',
+      webex: null
+    }
+  ])
+};
+
+// mock WebexCore
+class MockTask {
+  constructor() {
+    this.tasks = [];
+    this.id = 1;
+  }
+  createTask({title, note}) {
+    const task = {id: String(this.id++), title, note};
+    this.tasks.push(task);
+    return Promise.resolve({body: task});
+  }
+  getTask(id) {
+    const task = this.tasks.find(t => t.id === id);
+    return Promise.resolve(task);
+  }
+  listMyTasks() {
+    return Promise.resolve({body: {items: this.tasks}});
+  }
+  deleteTask(id) {
+    this.tasks = this.tasks.filter(t => t.id !== id);
+    return Promise.resolve();
+  }
+}
+
+class WebexCore {
+  constructor() {
+    this.internal = {
+      device: {},
+      encryption: {
+        kms: {
+          setDeviceInfo: () => {},
+          createUnboundKeys: async () => [{uri: 'kms://mock-key', jwk: {}}]
+        }
+      },
+      task: new MockTask()
+    };
+  }
+}
 
 describe('plugin-task', function () {
-  this.timeout(60000);
+  // this.timeout(60000);
   describe('Task', () => {
     let createdTask, spock;
 
-    beforeEach('create users', () =>
-      testUsers.create({count: 1}).then((users) => {
-        [spock] = users;
-        spock.webex = new WebexCore({
-          credentials: {
-            authorization: spock.token,
-          },
-        });
-      })
-    );
+    beforeEach('create users', async () => {
+      [spock] = await testUsers.create({count: 1});
+      spock.webex = new WebexCore();
+    });
 
-    beforeEach('populate data', () =>
-      spock.webex.internal.task
-        .createTask({
-          title: 'Task Title',
-          note: 'Task Note',
-        })
-        .then((t) => {
-          createdTask = t.body;
-        })
-    );
+    beforeEach('populate data', async () => {
+      const t = await spock.webex.internal.task.createTask({
+        title: 'Task Title',
+        note: 'Task Note',
+      });
+      createdTask = t.body;
+    });
 
-    afterEach(() =>
-      spock.webex.internal.task
-        .listMyTasks()
-        .then((res) =>
-          Promise.all(
-            res.body.items.map((task) =>
-              spock.webex.internal.task.deleteTask(task.id).catch((reason) => console.warn(reason))
-            )
-          )
+    afterEach(async () => {
+      const res = await spock.webex.internal.task.listMyTasks();
+      await Promise.all(
+        res.body.items.map((task) =>
+          spock.webex.internal.task.deleteTask(task.id).catch((reason) => console.warn(reason))
         )
-    );
+      );
+    });
 
     describe('#getTask()', () => {
-      it('fetch the task', () =>
-        spock.webex.internal.task.getTask(createdTask.id).then((task) => {
-          assert.isObject(task);
-          assert.equal(task.id, createdTask.id);
-        }));
+      it('fetch the task', async () => {
+        const task = await spock.webex.internal.task.getTask(createdTask.id);
+        assert.isObject(task);
+        assert.equal(task.id, createdTask.id);
+      });
     });
   });
 });

@@ -5,8 +5,8 @@ import {WebexPlugin} from '@webex/webex-core';
 
 import {TASK_REGISTERED, TASK_UNREGISTERED} from './constants';
 
-import EncryptHelper from './encrypt.helper';
-import DecryptHelper from './decrypt.helper';
+import EncryptHelper from './helpers/encrypt.helper';
+import DecryptHelper from './helpers/decrypt.helper';
 
 const Task = WebexPlugin.extend({
   namespace: 'Task',

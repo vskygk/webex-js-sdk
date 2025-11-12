@@ -1,6 +1,7 @@
 import sinon from 'sinon';
 import {expect} from '@webex/test-helper-chai';
-import EncryptHelper from '@webex/internal-plugin-task/src/encrypt.helper';
+import EncryptHelper from '@webex/internal-plugin-task/src/helpers/encrypt.helper';
+
 describe('internal-plugin-task', () => {
   describe('encryptHelper', () => {
     let ctx;

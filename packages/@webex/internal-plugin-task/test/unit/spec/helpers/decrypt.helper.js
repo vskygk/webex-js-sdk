@@ -1,6 +1,6 @@
 import sinon from "sinon";
 import { expect } from "@webex/test-helper-chai";
-import DecryptHelper from "@webex/internal-plugin-task/src/decrypt.helper";
+import DecryptHelper from "@webex/internal-plugin-task/src/helpers/decrypt.helper";
 
 describe("internal-plugin-task", () => {
   describe("DecryptHelper", () => {
