@@ -1,5 +1,3 @@
-import sinon from "sinon";
-import { expect } from "@webex/test-helper-chai";
 import DecryptHelper from "@webex/internal-plugin-task/src/helpers/decrypt.helper";
 
 describe("internal-plugin-task", () => {
@@ -13,7 +11,7 @@ describe("internal-plugin-task", () => {
         webex: {
           internal: {
             encryption: {
-              decryptText: sinon.stub()
+              decryptText: jest.fn()
             }
           }
         }
@@ -34,68 +32,61 @@ describe("internal-plugin-task", () => {
           encryptedTaskData
         ]
       };
-
     });
 
     afterEach(() => {
-      sinon.restore();
+      jest.clearAllMocks();
     });
 
     it("#decryptTaskResponse - should resolve with undefined if data is undefined", async () => {
       const decryptedData = await DecryptHelper.decryptTaskResponse(ctx, undefined);
-      expect(decryptedData).to.be.undefined;
+      expect(decryptedData).toBeUndefined();
     });
 
     it("#decryptTaskResponse - should resolve with undefined if data.encryptionKeyUrl is undefined", async () => {
       encryptedTaskData.encryptionKeyUrl = undefined;
       const decryptedData = await DecryptHelper.decryptTaskResponse(ctx, encryptedTaskData);
-      expect(decryptedData).to.be.undefined;
+      expect(decryptedData).toBeUndefined();
     });
 
     describe("#decryptTaskResponse - should replace encrypted data with decrypted data in response", () => {
       it("should decrypt scheduler data response correctly", async () => {
-        // Stub the decryption method to return the plaintext value.
         const expectedCiphertext = "some decrypted text for testing";
+        ctx.webex.internal.encryption.decryptText.mockResolvedValue(expectedCiphertext);
 
-        ctx.webex.internal.encryption.decryptText.callsFake((key, ciphertext) => Promise.resolve(expectedCiphertext));
-
-        // Decrypt the data.
         await DecryptHelper.decryptTaskResponse(ctx, encryptedTaskData);
 
-        // Check that all encrypted properties were decrypted correctly.
-        expect(encryptedTaskData.title).to.equal(expectedCiphertext);
-        expect(encryptedTaskData.note).to.equal(expectedCiphertext);
+        expect(encryptedTaskData.title).toBe(expectedCiphertext);
+        expect(encryptedTaskData.note).toBe(expectedCiphertext);
+        expect(ctx.webex.internal.encryption.decryptText).toHaveBeenCalled();
       });
     });
 
     it("#decryptTasksResponse - should resolve with undefined if data is undefined", async () => {
       const decryptedData = await DecryptHelper.decryptTasksResponse(ctx, undefined);
-      expect(decryptedData).to.be.undefined;
+      expect(decryptedData).toBeUndefined();
     });
 
     it("#decryptTasksResponse - should resolve with undefined if data.items is undefined", async () => {
       const decryptedData = await DecryptHelper.decryptTasksResponse(ctx, {});
-      expect(decryptedData).to.be.undefined;
+      expect(decryptedData).toBeUndefined();
     });
 
     it("#decryptTasksResponse - should resolve with undefined if data.items is empty", async () => {
       const decryptedData = await DecryptHelper.decryptTasksResponse(ctx, { items: [] });
-      expect(decryptedData).to.be.undefined;
+      expect(decryptedData).toBeUndefined();
     });
 
     describe("#decryptTasksResponse - should replace encrypted data with decrypted data in response", () => {
       it("should decrypt tasks data response correctly", async () => {
-        // Stub the decryption method to return the plaintext value.
         const expectedCiphertext = "some decrypted text for testing";
+        ctx.webex.internal.encryption.decryptText.mockResolvedValue(expectedCiphertext);
 
-        ctx.webex.internal.encryption.decryptText.callsFake((key, ciphertext) => Promise.resolve(expectedCiphertext));
-
-        // Decrypt the data.
         await DecryptHelper.decryptTasksResponse(ctx, encryptedTasksData);
 
-        // Check that all encrypted properties were decrypted correctly.
-        expect(encryptedTasksData.items[0].title).to.equal(expectedCiphertext);
-        expect(encryptedTasksData.items[0].note).to.equal(expectedCiphertext);
+        expect(encryptedTasksData.items[0].title).toBe(expectedCiphertext);
+        expect(encryptedTasksData.items[0].note).toBe(expectedCiphertext);
+        expect(ctx.webex.internal.encryption.decryptText).toHaveBeenCalled();
       });
     });
   });

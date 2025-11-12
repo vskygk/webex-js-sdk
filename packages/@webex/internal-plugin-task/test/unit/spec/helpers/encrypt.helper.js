@@ -1,18 +1,17 @@
-import sinon from 'sinon';
-import {expect} from '@webex/test-helper-chai';
 import EncryptHelper from '@webex/internal-plugin-task/src/helpers/encrypt.helper';
 
 describe('internal-plugin-task', () => {
   describe('encryptHelper', () => {
     let ctx;
+
     beforeEach(() => {
       ctx = {
         webex: {
           internal: {
             encryption: {
-              encryptText: sinon.stub(),
+              encryptText: jest.fn(),
               kms: {
-                createUnboundKeys: sinon.stub().resolves([{
+                createUnboundKeys: jest.fn().mockResolvedValue([{
                   uri: 'kmsKeyUri',
                 }]),
               }
@@ -23,7 +22,7 @@ describe('internal-plugin-task', () => {
     });
 
     afterEach(() => {
-      sinon.restore();
+      jest.clearAllMocks();
     });
 
     it('#encryptTaskRequest with plain text fields', async () => {
@@ -32,12 +31,13 @@ describe('internal-plugin-task', () => {
         "note": "plain text note",
       };
       const expectedCiphertext = 'some encrpty data';
-      ctx.webex.internal.encryption.encryptText.callsFake((key, ciphertext) =>
-        Promise.resolve(expectedCiphertext)
-      );
+      ctx.webex.internal.encryption.encryptText.mockResolvedValue(expectedCiphertext);
+
       await EncryptHelper.encryptTaskRequest(ctx, taskRequest);
-      expect(taskRequest.title).to.be.equal(expectedCiphertext);
-      expect(taskRequest.note).to.be.equal(expectedCiphertext);
+
+      expect(taskRequest.title).toBe(expectedCiphertext);
+      expect(taskRequest.note).toBe(expectedCiphertext);
+      expect(ctx.webex.internal.encryption.encryptText).toHaveBeenCalled();
     });
   });
 });
