@@ -977,6 +977,34 @@ describe('State Machine handler tests', () => {
     );
   });
 
+  it('session refresh 401 emits token error and ends the call', async () => {
+    expect.assertions(4);
+    const statusPayload = <WebexRequestPayload>(<unknown>{
+      statusCode: 401,
+    });
+
+    webex.request.mockReturnValue(statusPayload);
+    jest.spyOn(global, 'clearInterval');
+
+    const emitSpy = jest.spyOn(call, 'emit');
+
+    call.on(CALL_EVENT_KEYS.CALL_ERROR, (errObj) => {
+      expect(errObj.type).toStrictEqual(ERROR_TYPE.TOKEN_ERROR);
+    });
+
+    const funcSpy = jest.spyOn(call, 'postStatus').mockRejectedValue(statusPayload);
+
+    call['handleCallEstablished']({} as CallEvent);
+
+    jest.advanceTimersByTime(DEFAULT_SESSION_TIMER);
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(clearInterval).toHaveBeenCalledTimes(1);
+    expect(funcSpy).toBeCalledTimes(1);
+    expect(emitSpy).toHaveBeenCalledWith(CALL_EVENT_KEYS.DISCONNECT, call.getCorrelationId());
+  });
+
   it('session refresh failure', async () => {
     expect.assertions(4);
     const statusPayload = <WebexRequestPayload>(<unknown>{
@@ -1013,6 +1041,86 @@ describe('State Machine handler tests', () => {
 
     expect(clearInterval).toHaveBeenCalledTimes(2); // check this
     expect(funcSpy).toBeCalledTimes(1);
+  });
+
+  it('session refresh 500 schedules retry via retry-after or default interval', async () => {
+    const errorPayload = <WebexRequestPayload>(<unknown>{
+      statusCode: 500,
+      headers: {
+        'retry-after': 1,
+      },
+    });
+
+    const okPayload = <WebexRequestPayload>(<unknown>{statusCode: 200, body: {}});
+
+    const sendEvtSpy = jest.spyOn(call as any, 'sendCallStateMachineEvt');
+    const postStatusSpy = jest
+      .spyOn(call as any, 'postStatus')
+      .mockRejectedValueOnce(errorPayload)
+      .mockResolvedValueOnce(okPayload);
+
+    if (call['sessionTimer'] === undefined) {
+      call['handleCallEstablished']({} as CallEvent);
+    }
+
+    jest.advanceTimersByTime(DEFAULT_SESSION_TIMER);
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(postStatusSpy).toHaveBeenCalledTimes(1);
+    expect(sendEvtSpy).toHaveBeenCalledWith({type: 'E_CALL_ESTABLISHED'});
+  });
+
+  it('keepalive ends after reaching max retry count', async () => {
+    const resolvePromise = async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    };
+
+    const errorPayload = <WebexRequestPayload>(<unknown>{
+      statusCode: 500,
+      headers: {
+        'retry-after': 1,
+      },
+    });
+
+    jest.spyOn(global, 'clearInterval');
+    const warnSpy = jest.spyOn(log, 'warn');
+    const postStatusSpy = jest.spyOn(call, 'postStatus').mockRejectedValue(errorPayload);
+
+    // Put the call in the S_CALL_ESTABLISHED state and set it as connected
+    call['callStateMachine'].state.value = 'S_CALL_ESTABLISHED';
+    call['connected'] = true;
+
+    // Call handleCallEstablished which will setup interval
+    call['handleCallEstablished']({} as CallEvent);
+
+    // Advance timer to trigger the first failure (uses DEFAULT_SESSION_TIMER)
+    jest.advanceTimersByTime(DEFAULT_SESSION_TIMER);
+    await resolvePromise();
+
+    // Now advance by 1 second for each of the 3 more retry attempts (retry-after: 1 second each)
+    // Need to do this separately to allow state machine to process and create new intervals
+    jest.advanceTimersByTime(1000);
+    await resolvePromise();
+
+    jest.advanceTimersByTime(1000);
+    await resolvePromise();
+
+    jest.advanceTimersByTime(1000);
+    await resolvePromise();
+
+    // The error handler should detect we're at max retry count and stop
+    expect(warnSpy).toHaveBeenCalledWith(
+      `Max call keepalive retry attempts reached for call: ${call.getCorrelationId()}`,
+      {
+        file: 'call',
+        method: 'handleCallEstablished',
+      }
+    );
+    expect(postStatusSpy).toHaveBeenCalledTimes(4);
+    expect(call['callKeepaliveRetryCount']).toBe(0);
+    expect(call['sessionTimer']).toBeUndefined();
   });
 
   it('state changes during successful incoming call', async () => {
