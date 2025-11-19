@@ -80,7 +80,7 @@ describe('internal-plugin-task', () => {
               {
                 "id": "abcdabcd-abcd-abcd-abcd-00000000",
                 "title": "Encrypted Task Title",
-                "note": "Encrypted Task Note",
+                "notes": "Encrypted Task Note",
                 "encryptionKeyUrl": "/keys/e5d3f747-6adf-432d-999c-6578e33953e3",
               }
             ],
@@ -105,7 +105,7 @@ describe('internal-plugin-task', () => {
           body: {
             "id": id,
             "title": title,
-            "note": "Encrypted Task Note",
+            "notes": "Encrypted Task Note",
             "encryptionKeyUrl": "/keys/e5d3f747-6adf-432d-999c-6578e33953e3",
           }
         });

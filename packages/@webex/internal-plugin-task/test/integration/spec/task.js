@@ -16,8 +16,8 @@ class MockTask {
     this.tasks = [];
     this.id = 1;
   }
-  createTask({title, note}) {
-    const task = {id: String(this.id++), title, note};
+  createTask({title, notes}) {
+    const task = {id: String(this.id++), title, notes};
     this.tasks.push(task);
     return Promise.resolve({body: task});
   }
@@ -62,7 +62,7 @@ describe('plugin-task', function () {
     beforeEach('populate data', async () => {
       const t = await spock.webex.internal.task.createTask({
         title: 'Task Title',
-        note: 'Task Note',
+        notes: 'Task Notes',
       });
       createdTask = t.body;
     });

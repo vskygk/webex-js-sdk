@@ -28,7 +28,7 @@ describe('internal-plugin-task', () => {
     it('#encryptTaskRequest with plain text fields', async () => {
       const taskRequest = {
         "title": "plain text title",
-        "note": "plain text note",
+        "notes": "plain text notes",
       };
       const expectedCiphertext = 'some encrpty data';
       ctx.webex.internal.encryption.encryptText.mockResolvedValue(expectedCiphertext);
@@ -36,7 +36,7 @@ describe('internal-plugin-task', () => {
       await EncryptHelper.encryptTaskRequest(ctx, taskRequest);
 
       expect(taskRequest.title).toBe(expectedCiphertext);
-      expect(taskRequest.note).toBe(expectedCiphertext);
+      expect(taskRequest.notes).toBe(expectedCiphertext);
       expect(ctx.webex.internal.encryption.encryptText).toHaveBeenCalled();
     });
   });

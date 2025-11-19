@@ -20,7 +20,7 @@ describe("internal-plugin-task", () => {
       encryptedTaskData = {
         "id": "abcdabcd-abcd-abcd-abcd-00000000",
         "title": "Encrypted Task Title",
-        "note": "Encrypted Task Note",
+        "notes": "Encrypted Task Notes",
         "encryptionKeyUrl": "/keys/e5d3f747-6adf-432d-999c-6578e33953e3",
       };
 
@@ -57,7 +57,7 @@ describe("internal-plugin-task", () => {
         await DecryptHelper.decryptTaskResponse(ctx, encryptedTaskData);
 
         expect(encryptedTaskData.title).toBe(expectedCiphertext);
-        expect(encryptedTaskData.note).toBe(expectedCiphertext);
+        expect(encryptedTaskData.notes).toBe(expectedCiphertext);
         expect(ctx.webex.internal.encryption.decryptText).toHaveBeenCalled();
       });
     });
@@ -85,7 +85,7 @@ describe("internal-plugin-task", () => {
         await DecryptHelper.decryptTasksResponse(ctx, encryptedTasksData);
 
         expect(encryptedTasksData.items[0].title).toBe(expectedCiphertext);
-        expect(encryptedTasksData.items[0].note).toBe(expectedCiphertext);
+        expect(encryptedTasksData.items[0].notes).toBe(expectedCiphertext);
         expect(ctx.webex.internal.encryption.decryptText).toHaveBeenCalled();
       });
     });

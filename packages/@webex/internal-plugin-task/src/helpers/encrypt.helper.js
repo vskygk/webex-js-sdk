@@ -30,7 +30,7 @@ const EncryptHelper = {
     if (data.encryptionKeyUrl) {
       return Promise.all([
         _encryptTextProp(ctx, 'title', data.encryptionKeyUrl, data),
-        _encryptTextProp(ctx, 'note', data.encryptionKeyUrl, data),
+        _encryptTextProp(ctx, 'notes', data.encryptionKeyUrl, data),
       ]);
     }
 
@@ -41,7 +41,7 @@ const EncryptHelper = {
 
       return Promise.all([
         _encryptTextProp(ctx, 'title', encryptionKeyUrl, data),
-        _encryptTextProp(ctx, 'note', encryptionKeyUrl, data),
+        _encryptTextProp(ctx, 'notes', encryptionKeyUrl, data),
       ]);
     });
   },

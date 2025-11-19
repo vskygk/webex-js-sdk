@@ -25,7 +25,7 @@ const _decryptTaskFields = (ctx, item) => {
 
   return Promise.all([
     _decryptTextProp(ctx, 'title', item.encryptionKeyUrl, item),
-    _decryptTextProp(ctx, 'note', item.encryptionKeyUrl, item),
+    _decryptTextProp(ctx, 'notes', item.encryptionKeyUrl, item),
   ]);
 };
 
