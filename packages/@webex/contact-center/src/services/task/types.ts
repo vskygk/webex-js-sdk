@@ -672,6 +672,8 @@ export type Interaction = {
     BLIND_TRANSFER_IN_PROGRESS?: boolean;
     /** Desktop view configuration for Flow Control */
     fcDesktopView?: string;
+    /** Agent ID who initiated the outdial call */
+    outdialAgentId?: string;
   };
   /** Main interaction identifier for related interactions */
   mainInteractionId?: string;
@@ -797,6 +799,10 @@ export type TaskData = {
   reservedAgentChannelId?: string;
   /** Indicates if wrap-up is required for this task */
   wrapUpRequired?: boolean;
+  /** Indicates if auto-answer is in progress for this task */
+  isAutoAnswering?: boolean;
+  /** Indicates if wrap-up is required for this task */
+  agentsPendingWrapUp?: string[];
 };
 
 /**
